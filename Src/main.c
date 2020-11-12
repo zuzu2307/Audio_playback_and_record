@@ -56,6 +56,7 @@ USBH_HandleTypeDef hUSBHost;
 AUDIO_ApplicationTypeDef appli_state = APPLICATION_IDLE;
 char USBDISKPath[4];          /* USB Host logical drive path */
 UART_HandleTypeDef huart1;
+uint8_t check = 0;
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);

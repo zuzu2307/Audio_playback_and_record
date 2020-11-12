@@ -1,7 +1,7 @@
-main.c:171:13:USBH_UserProcess	8	static
-main.c:74:5:main	216	static,ignoring_inline_asm
-main.c:295:6:BSP_AUDIO_OUT_ClockConfig	144	static
-main.c:399:6:HAL_UART_MspInit	48	static
-main.c:440:6:HAL_UART_MspDeInit	8	static
-main.c:466:6:Error_Handler	0	static
-main.c:481:6:BSP_LCD_ClockConfig	0	static
+main.c:172:13:USBH_UserProcess	8	static
+main.c:75:5:main	216	static,ignoring_inline_asm
+main.c:296:6:BSP_AUDIO_OUT_ClockConfig	144	static
+main.c:400:6:HAL_UART_MspInit	48	static
+main.c:441:6:HAL_UART_MspDeInit	8	static
+main.c:467:6:Error_Handler	0	static
+main.c:482:6:BSP_LCD_ClockConfig	0	static

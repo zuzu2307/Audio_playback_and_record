@@ -62,6 +62,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Global extern variables ---------------------------------------------------*/
 
+extern uint8_t check;
+
 /* Private variables ---------------------------------------------------------*/
 AUDIO_DEMO_StateMachine     AudioDemo;
 AUDIO_PLAYBACK_StateTypeDef AudioState;
@@ -120,6 +122,7 @@ void AUDIO_MenuProcess(void)
         else if ((TS_State.touchX[0] > TOUCH_PLAYBACK_XMIN) && (TS_State.touchX[0] < TOUCH_PLAYBACK_XMAX) &&
                  (TS_State.touchY[0] > TOUCH_PLAYBACK_YMIN) && (TS_State.touchY[0] < TOUCH_PLAYBACK_YMAX))
         {
+          check = 0;
           AudioDemo.state = AUDIO_DEMO_PLAYBACK;
         }
         else

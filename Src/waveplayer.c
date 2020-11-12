@@ -94,6 +94,8 @@ WAVE_FormatTypeDef WaveFormat;
 FIL WavFile;
 extern FILELIST_FileTypeDef FileList;
 extern UART_HandleTypeDef huart1;
+
+extern uint8_t check;
 /* Private function prototypes -----------------------------------------------*/
 static AUDIO_ErrorTypeDef GetFileInfo(uint16_t file_idx, WAVE_FormatTypeDef *info);
 static uint8_t PlayerInit(uint32_t AudioFreq);
@@ -127,7 +129,6 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Init(void)
 AUDIO_ErrorTypeDef AUDIO_PLAYER_Start(uint8_t idx)
 {
   uint32_t bytesread;
-  
   f_close(&WavFile);
   if(AUDIO_GetWavObjectNumber() > idx)
   { 
@@ -147,7 +148,12 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Start(uint8_t idx)
               AUDIO_OUT_BUFFER_SIZE, 
               (void *)&bytesread) == FR_OK)
     {
-      AudioState = AUDIO_STATE_PAUSE;
+    if(idx == 0 && check == 0){
+    	AudioState = AUDIO_STATE_PAUSE;
+    	check = 1;
+    }
+    else
+    	AudioState = AUDIO_STATE_PLAY;
       AUDIO_PlaybackDisplayButtons();
       BSP_LCD_DisplayStringAt(250, LINE(9), (uint8_t *)"  [PLAY ]", LEFT_MODE);
       { 
@@ -234,8 +240,12 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
                      TOUCH_STOP_XMAX - TOUCH_STOP_XMIN,
                      TOUCH_STOP_YMAX - TOUCH_STOP_YMIN);
     BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
-    AudioState = AUDIO_STATE_IDLE; 
-    audio_error = AUDIO_ERROR_IO;
+    check = 0;
+    AUDIO_PLAYER_Start(0);
+        if(uwVolume == 0)
+        {
+          BSP_AUDIO_OUT_SetVolume(uwVolume);
+        }
     break;
     
   case AUDIO_STATE_NEXT:
@@ -497,8 +507,7 @@ static void AUDIO_AcquireTouchButtons(void)
           AudioState = AUDIO_STATE_RESUME;
         }
       }
-      else if ((TS_State.touchX[0] > TOUCH_NEXT_XMIN) && (TS_State.touchX[0] < TOUCH_NEXT_XMAX) &&
-               (TS_State.touchY[0] > TOUCH_NEXT_YMIN) && (TS_State.touchY[0] < TOUCH_NEXT_YMAX))
+      else if (0)
       {
         AudioState = AUDIO_STATE_NEXT;
       }
