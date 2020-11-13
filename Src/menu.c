@@ -62,8 +62,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Global extern variables ---------------------------------------------------*/
 
-extern uint8_t check;
-
+extern uint8_t check_FIRST;
+extern uint8_t state_INPUT;
+extern uint8_t clk_IN;
 /* Private variables ---------------------------------------------------------*/
 AUDIO_DEMO_StateMachine     AudioDemo;
 AUDIO_PLAYBACK_StateTypeDef AudioState;
@@ -112,30 +113,30 @@ void AUDIO_MenuProcess(void)
     case AUDIO_DEMO_WAIT:
       
       BSP_TS_GetState(&TS_State);
-      if(TS_State.touchDetected == 1)
-      {
-        if ((TS_State.touchX[0] > TOUCH_RECORD_XMIN) && (TS_State.touchX[0] < TOUCH_RECORD_XMAX) &&
-            (TS_State.touchY[0] > TOUCH_RECORD_YMIN) && (TS_State.touchY[0] < TOUCH_RECORD_YMAX))
-        {
-          AudioDemo.state = AUDIO_DEMO_IN;
-        }
-        else if ((TS_State.touchX[0] > TOUCH_PLAYBACK_XMIN) && (TS_State.touchX[0] < TOUCH_PLAYBACK_XMAX) &&
-                 (TS_State.touchY[0] > TOUCH_PLAYBACK_YMIN) && (TS_State.touchY[0] < TOUCH_PLAYBACK_YMAX))
-        {
-          check = 0;
+//      if(TS_State.touchDetected == 1)
+//      {
+//        if ((TS_State.touchX[0] > TOUCH_RECORD_XMIN) && (TS_State.touchX[0] < TOUCH_RECORD_XMAX) &&
+//            (TS_State.touchY[0] > TOUCH_RECORD_YMIN) && (TS_State.touchY[0] < TOUCH_RECORD_YMAX))
+//        {
+//          AudioDemo.state = AUDIO_DEMO_IN;
+//        }
+//        else if (((TS_State.touchX[0] > TOUCH_PLAYBACK_XMIN) && (TS_State.touchX[0] < TOUCH_PLAYBACK_XMAX) &&
+//                 (TS_State.touchY[0] > TOUCH_PLAYBACK_YMIN) && (TS_State.touchY[0] < TOUCH_PLAYBACK_YMAX)) || (state_INPUT == 1))
+//        {
+      	  check_FIRST = 1;
           AudioDemo.state = AUDIO_DEMO_PLAYBACK;
-        }
-        else
-        {
-          AudioDemo.state = AUDIO_DEMO_EXPLORE;
-        }
+//        }
+//        else
+//        {
+//          AudioDemo.state = AUDIO_DEMO_EXPLORE;
+//        }
         
-        /* Wait for touch released */
-        do
-        {
-          BSP_TS_GetState(&TS_State);
-        }while(TS_State.touchDetected > 0);
-      }
+//        /* Wait for touch released */
+//        do
+//        {
+//          BSP_TS_GetState(&TS_State);
+//        }while(TS_State.touchDetected > 0);
+//      }
       break;
       
     case AUDIO_DEMO_EXPLORE: 

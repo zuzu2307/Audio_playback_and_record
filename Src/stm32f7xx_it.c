@@ -34,6 +34,7 @@ extern SAI_HandleTypeDef haudio_out_sai;
 extern SAI_HandleTypeDef haudio_in_sai;
 
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart6;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -189,6 +190,16 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 1 */
 
   /* USER CODE END USART1_IRQn 1 */
+}
+void USART6_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART6_IRQn 0 */
+
+  /* USER CODE END USART6_IRQn 0 */
+  HAL_UART_IRQHandler(&huart6);
+  /* USER CODE BEGIN USART6_IRQn 1 */
+
+  /* USER CODE END USART6_IRQn 1 */
 }
 /**
   * @brief  This function handles PPP interrupt request.

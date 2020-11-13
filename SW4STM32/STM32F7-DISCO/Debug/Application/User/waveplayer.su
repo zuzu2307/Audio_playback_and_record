@@ -1,7 +1,7 @@
-waveplayer.c:492:13:AUDIO_AcquireTouchButtons	8	static
-waveplayer.c:112:20:AUDIO_PLAYER_Init	8	static
-waveplayer.c:129:20:AUDIO_PLAYER_Start	96	static
-waveplayer.c:177:20:AUDIO_PLAYER_Process	40	static
-waveplayer.c:341:20:AUDIO_PLAYER_Stop	8	static
-waveplayer.c:356:6:BSP_AUDIO_OUT_TransferComplete_CallBack	0	static
-waveplayer.c:369:6:BSP_AUDIO_OUT_HalfTransfer_CallBack	0	static
+waveplayer.c:497:13:AUDIO_AcquireTouchButtons	16	static
+waveplayer.c:116:20:AUDIO_PLAYER_Init	8	static
+waveplayer.c:133:20:AUDIO_PLAYER_Start	88	static
+waveplayer.c:182:20:AUDIO_PLAYER_Process	40	static
+waveplayer.c:347:20:AUDIO_PLAYER_Stop	8	static
+waveplayer.c:362:6:BSP_AUDIO_OUT_TransferComplete_CallBack	0	static
+waveplayer.c:375:6:BSP_AUDIO_OUT_HalfTransfer_CallBack	0	static

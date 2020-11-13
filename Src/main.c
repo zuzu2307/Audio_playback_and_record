@@ -56,7 +56,11 @@ USBH_HandleTypeDef hUSBHost;
 AUDIO_ApplicationTypeDef appli_state = APPLICATION_IDLE;
 char USBDISKPath[4];          /* USB Host logical drive path */
 UART_HandleTypeDef huart1;
-uint8_t check = 0;
+UART_HandleTypeDef huart6;
+uint8_t check_FIRST;
+uint8_t clk_IN = 0;
+uint8_t state_INPUT;
+uint8_t str[20];
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void USBH_UserProcess(USBH_HandleTypeDef *phost, uint8_t id);
@@ -64,7 +68,7 @@ static void AUDIO_InitApplication(void);
 static void CPU_CACHE_Enable(void);
 static void MX_GPIO_Init(void);
 static void MX_USART1_UART_Init(void);
-
+static void MX_USART6_UART_Init(void);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -105,18 +109,25 @@ int main(void)
 
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_USART6_UART_Init();
   /* Run Application (Blocking mode) */
+  HAL_Delay(1000);
   while (1)
   {
     /* USB Host Background task */
     USBH_Process(&hUSBHost);
-    if(HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_7) == GPIO_PIN_RESET)
-    {
-    	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
-    }
-    else {
-    	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_RESET);
-	}
+    state_INPUT = (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8)<<2) | (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_15)<<1) | HAL_GPIO_ReadPin(GPIOI, GPIO_PIN_2);
+//    sprintf((char *)str, "%d\r",state_INPUT);
+//    HAL_UART_Transmit(&huart1, (uint8_t*) str, strlen(str),1000);
+    clk_IN = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);
+//    HAL_Delay(300);
+//    if(HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_7) == GPIO_PIN_RESET)
+//    {
+//    	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
+//    }
+//    else {
+//    	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_RESET);
+//	}
     /* AUDIO Menu Process */
     AUDIO_MenuProcess();
 
@@ -339,6 +350,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
@@ -351,30 +363,24 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PG6 D2 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB4  D3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  /*Configure GPIO pin : PI2 D8*/
+   GPIO_InitStruct.Pin = GPIO_PIN_2;
+   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PG7  D4*/
-  GPIO_InitStruct.Pin = GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+  /*Configure GPIO pins : PA15 PA8 D9 D10*/
+   GPIO_InitStruct.Pin = GPIO_PIN_15|GPIO_PIN_8;
+   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PI0  D5*/
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
-
+   /*Configure GPIO pin : PB15 D11*/
+    GPIO_InitStruct.Pin = GPIO_PIN_15;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 void MX_USART1_UART_Init(void)
@@ -391,6 +397,25 @@ void MX_USART1_UART_Init(void)
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+void MX_USART6_UART_Init(void)
+{
+
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 115200;
+  huart6.Init.WordLength = UART_WORDLENGTH_8B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart6.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
   {
     Error_Handler();
   }
@@ -436,6 +461,33 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
 
   /* USER CODE END USART1_MspInit 1 */
   }
+  else if(uartHandle->Instance==USART6)
+  {
+  /* USER CODE BEGIN USART6_MspInit 0 */
+
+  /* USER CODE END USART6_MspInit 0 */
+    /* USART6 clock enable */
+    __HAL_RCC_USART6_CLK_ENABLE();
+
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    /**USART6 GPIO Configuration
+    PC7     ------> USART6_RX
+    PC6     ------> USART6_TX
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /* USART6 interrupt Init */
+    HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART6_IRQn);
+  /* USER CODE BEGIN USART6_MspInit 1 */
+
+  /* USER CODE END USART6_MspInit 1 */
+  }
 }
 
 void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
@@ -463,7 +515,28 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 
   /* USER CODE END USART1_MspDeInit 1 */
   }
+  else if(uartHandle->Instance==USART6)
+  {
+  /* USER CODE BEGIN USART6_MspDeInit 0 */
+
+  /* USER CODE END USART6_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_USART6_CLK_DISABLE();
+
+    /**USART6 GPIO Configuration
+    PC7     ------> USART6_RX
+    PC6     ------> USART6_TX
+    */
+    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_7|GPIO_PIN_6);
+
+    /* USART6 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(USART6_IRQn);
+  /* USER CODE BEGIN USART6_MspDeInit 1 */
+
+  /* USER CODE END USART6_MspDeInit 1 */
+  }
 }
+
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */

@@ -92,10 +92,14 @@ static Point PreviousPoints[] = {{TOUCH_PREVIOUS_XMIN, (TOUCH_PREVIOUS_YMIN+TOUC
 
 WAVE_FormatTypeDef WaveFormat;
 FIL WavFile;
+uint8_t check_STOP = 1;
+
 extern FILELIST_FileTypeDef FileList;
 extern UART_HandleTypeDef huart1;
-
-extern uint8_t check;
+extern UART_HandleTypeDef huart6;
+extern uint8_t check_FIRST;
+extern uint8_t state_INPUT;
+extern uint8_t clk_IN;
 /* Private function prototypes -----------------------------------------------*/
 static AUDIO_ErrorTypeDef GetFileInfo(uint16_t file_idx, WAVE_FormatTypeDef *info);
 static uint8_t PlayerInit(uint32_t AudioFreq);
@@ -148,9 +152,10 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Start(uint8_t idx)
               AUDIO_OUT_BUFFER_SIZE, 
               (void *)&bytesread) == FR_OK)
     {
-    if(idx == 0 && check == 0){
+    if(check_FIRST == 1 || check_STOP == 1){
+    	check_FIRST = 0;
+    	check_STOP = 0;
     	AudioState = AUDIO_STATE_PAUSE;
-    	check = 1;
     }
     else
     	AudioState = AUDIO_STATE_PLAY;
@@ -240,8 +245,8 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
                      TOUCH_STOP_XMAX - TOUCH_STOP_XMIN,
                      TOUCH_STOP_YMAX - TOUCH_STOP_YMIN);
     BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
-    check = 0;
-    AUDIO_PLAYER_Start(0);
+    check_STOP = 1;
+    AUDIO_PLAYER_Start(FilePos);
         if(uwVolume == 0)
         {
           BSP_AUDIO_OUT_SetVolume(uwVolume);
@@ -302,9 +307,10 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
     if( uwVolume <= 90)
     {
       uwVolume += 10;
+      AudioState = AUDIO_STATE_PLAY;
     }
     BSP_AUDIO_OUT_SetVolume(uwVolume);
-    BSP_LCD_SetTextColor(LCD_COLOR_WHITE); 
+    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
     sprintf((char *)str,  "Volume : %lu ", uwVolume);
     BSP_LCD_DisplayStringAtLine(9, str);
     AudioState = AUDIO_STATE_PLAY;
@@ -316,7 +322,7 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
       uwVolume -= 10;
     }
     BSP_AUDIO_OUT_SetVolume(uwVolume);
-    BSP_LCD_SetTextColor(LCD_COLOR_WHITE); 
+    BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
     sprintf((char *)str,  "Volume : %lu ", uwVolume);
     BSP_LCD_DisplayStringAtLine(9, str);
     AudioState = AUDIO_STATE_PLAY;
@@ -395,12 +401,11 @@ static AUDIO_ErrorTypeDef GetFileInfo(uint16_t file_idx, WAVE_FormatTypeDef *inf
     if(f_read(&WavFile, info, sizeof(WaveFormat), (void *)&bytesread) == FR_OK)
     {
       BSP_LCD_SetTextColor(LCD_COLOR_WHITE); 
-      sprintf((char *)str, "Playing file (%d/%d): %s", 
-              file_idx + 1, FileList.ptr,
-              (char *)FileList.file[file_idx].name);
+      sprintf((char *)str, "%s\r",(char *)FileList.file[file_idx].name);
       BSP_LCD_ClearStringLine(4);
       BSP_LCD_DisplayStringAtLine(4, str);
-      HAL_UART_Transmit(&huart1, (uint8_t*) str, strlen(str),1000);
+//      HAL_UART_Transmit(&huart1, (uint8_t*) str, strlen(str),1000);
+      HAL_UART_Transmit(&huart6, (uint8_t*) str, strlen(str),1000);
 
       BSP_LCD_SetTextColor(LCD_COLOR_CYAN); 
       sprintf((char *)str,  "Sample rate : %d Hz", (int)(info->SampleRate));
@@ -491,45 +496,48 @@ static void AUDIO_PlaybackDisplayButtons(void)
   */
 static void AUDIO_AcquireTouchButtons(void)
 {
-  static TS_StateTypeDef  TS_State={0};
+  if(clk_IN == GPIO_PIN_SET)
+  {
+	  while(clk_IN){
+		 if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15) == GPIO_PIN_RESET){
+			clk_IN = GPIO_PIN_RESET;
+		 }
+	  }
+
+	  if (state_INPUT == 2)
+	  {
+	    if (AudioState == AUDIO_STATE_PLAY)
+	     {
+	       AudioState = AUDIO_STATE_PAUSE;
+	     }
+	    else
+	     {
+	       AudioState = AUDIO_STATE_RESUME;
+	     }
+	  }
+	  else if (state_INPUT == 3)
+	  {
+	    AudioState = AUDIO_STATE_STOP;
+	  }
+	  else if (state_INPUT == 4)
+	  {
+	    AudioState = AUDIO_STATE_PREVIOUS;
+	  }
+	  else if (state_INPUT == 5)
+	  {
+	    AudioState = AUDIO_STATE_NEXT;
+	  }
+	  else if(state_INPUT == 6)
+	  {
+		AudioState = AUDIO_STATE_VOLUME_DOWN;
+	  }
+	  else if(state_INPUT == 7)
+	  {
+		AudioState = AUDIO_STATE_VOLUME_UP;
+	  }
 
 
-
-
-      if (HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_6) == GPIO_PIN_RESET)
-      {
-        if (AudioState == AUDIO_STATE_PLAY)
-        {
-          AudioState = AUDIO_STATE_PAUSE;
-        }
-        else
-        {
-          AudioState = AUDIO_STATE_RESUME;
-        }
-      }
-      else if (0)
-      {
-        AudioState = AUDIO_STATE_NEXT;
-      }
-      else if ((TS_State.touchX[0] > TOUCH_PREVIOUS_XMIN) && (TS_State.touchX[0] < TOUCH_PREVIOUS_XMAX) &&
-               (TS_State.touchY[0] > TOUCH_PREVIOUS_YMIN) && (TS_State.touchY[0] < TOUCH_PREVIOUS_YMAX))
-      {
-        AudioState = AUDIO_STATE_PREVIOUS;
-      }
-      else if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_4) == GPIO_PIN_RESET)
-      {
-        AudioState = AUDIO_STATE_STOP;
-      }
-      else if((TS_State.touchX[0] > TOUCH_VOL_MINUS_XMIN) && (TS_State.touchX[0] < TOUCH_VOL_MINUS_XMAX) &&
-              (TS_State.touchY[0] > TOUCH_VOL_MINUS_YMIN) && (TS_State.touchY[0] < TOUCH_VOL_MINUS_YMAX))
-      {
-        AudioState = AUDIO_STATE_VOLUME_DOWN;
-      }
-      else if((TS_State.touchX[0] > TOUCH_VOL_PLUS_XMIN) && (TS_State.touchX[0] < TOUCH_VOL_PLUS_XMAX) &&
-              (TS_State.touchY[0] > TOUCH_VOL_PLUS_YMIN) && (TS_State.touchY[0] < TOUCH_VOL_PLUS_YMAX))
-      {
-        AudioState = AUDIO_STATE_VOLUME_UP;
-      }
+  }
 
 }
 
