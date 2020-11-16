@@ -112,7 +112,7 @@ void AUDIO_MenuProcess(void)
       
     case AUDIO_DEMO_WAIT:
       
-      BSP_TS_GetState(&TS_State);
+//      BSP_TS_GetState(&TS_State);
 //      if(TS_State.touchDetected == 1)
 //      {
 //        if ((TS_State.touchX[0] > TOUCH_RECORD_XMIN) && (TS_State.touchX[0] < TOUCH_RECORD_XMAX) &&
@@ -130,7 +130,7 @@ void AUDIO_MenuProcess(void)
 //        {
 //          AudioDemo.state = AUDIO_DEMO_EXPLORE;
 //        }
-        
+//
 //        /* Wait for touch released */
 //        do
 //        {
@@ -200,7 +200,7 @@ void AUDIO_MenuProcess(void)
       {
         AudioDemo.state = AUDIO_DEMO_WAIT;
       }
-      break; 
+      break;
       
     case AUDIO_DEMO_IN:
       if(appli_state == APPLICATION_READY)

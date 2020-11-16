@@ -189,6 +189,8 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
   switch(AudioState)
   {
   case AUDIO_STATE_PLAY:
+	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
     if(BufferCtl.fptr >= WaveFormat.FileSize)
     {
       BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
@@ -240,6 +242,8 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
     break;
     
   case AUDIO_STATE_STOP:
+	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
     BSP_LCD_SetTextColor(LCD_COLOR_RED);
     BSP_LCD_FillRect(TOUCH_STOP_XMIN, TOUCH_STOP_YMIN , /* Stop rectangle */
                      TOUCH_STOP_XMAX - TOUCH_STOP_XMIN,
@@ -280,6 +284,8 @@ AUDIO_ErrorTypeDef AUDIO_PLAYER_Process(void)
     break;   
     
   case AUDIO_STATE_PAUSE:
+	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
     BSP_LCD_SetTextColor(LCD_COLOR_CYAN);
     BSP_LCD_DisplayStringAt(250, LINE(9), (uint8_t *)"  [PAUSE]", LEFT_MODE);
     BSP_LCD_SetTextColor(LCD_COLOR_RED);    /* Display red pause rectangles */
@@ -393,7 +399,7 @@ static AUDIO_ErrorTypeDef GetFileInfo(uint16_t file_idx, WAVE_FormatTypeDef *inf
 {
   uint32_t bytesread;
   uint32_t duration;
-  uint8_t str[FILEMGR_FILE_NAME_SIZE + 20];  
+  uint8_t str[FILEMGR_FILE_NAME_SIZE + 20];
   
   if(f_open(&WavFile, (char *)FileList.file[file_idx].name, FA_OPEN_EXISTING | FA_READ) == FR_OK) 
   {

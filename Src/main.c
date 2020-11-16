@@ -112,6 +112,9 @@ int main(void)
   MX_USART6_UART_Init();
   /* Run Application (Blocking mode) */
   HAL_Delay(1000);
+  char start_str[] = "Music Ready\r";
+  HAL_UART_Transmit(&huart6, (uint8_t*) start_str,strlen(start_str) ,1000);
+
   while (1)
   {
     /* USB Host Background task */
@@ -152,7 +155,7 @@ static void AUDIO_InitApplication(void)
   BSP_LCD_Init();
   
   /* LCD Layer Initialization */
-  BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS); 
+  BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS);
   
   /* Select the LCD Layer */
   BSP_LCD_SelectLayer(1);
@@ -381,6 +384,13 @@ void MX_GPIO_Init(void)
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_PULLDOWN;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : PB14 D12 */
+    GPIO_InitStruct.Pin = GPIO_PIN_14;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 void MX_USART1_UART_Init(void)
